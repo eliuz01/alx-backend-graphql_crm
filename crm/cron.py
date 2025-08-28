@@ -1,4 +1,7 @@
 import datetime
+from gql.transport.requests import RequestsHTTPTransport
+from gql import gql, Client
+
 
 def log_crm_heartbeat():
     """Log a heartbeat message every 5 minutes."""
@@ -8,16 +11,19 @@ def log_crm_heartbeat():
     with open("/tmp/crm_heartbeat_log.txt", "a") as f:
         f.write(message)
 
-    # Optional: query GraphQL hello endpoint to confirm it works
+    # Optional: query GraphQL hello endpoint with gql client
     try:
-        import requests
-        response = requests.post(
-            "http://localhost:8000/graphql",
-            json={"query": "{ hello }"},
+        transport = RequestsHTTPTransport(
+            url="http://localhost:8000/graphql/",
+            verify=True,
+            retries=3,
         )
-        if response.ok:
-            with open("/tmp/crm_heartbeat_log.txt", "a") as f:
-                f.write(f"{timestamp} GraphQL hello: {response.json()}\n")
+        client = Client(transport=transport, fetch_schema_from_transport=True)
+        query = gql("{ hello }")
+        result = client.execute(query)
+
+        with open("/tmp/crm_heartbeat_log.txt", "a") as f:
+            f.write(f"{timestamp} GraphQL hello: {result}\n")
     except Exception as e:
         with open("/tmp/crm_heartbeat_log.txt", "a") as f:
             f.write(f"{timestamp} GraphQL check failed: {str(e)}\n")
