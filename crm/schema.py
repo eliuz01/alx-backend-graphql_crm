@@ -133,4 +133,24 @@ class Mutation(graphene.ObjectType):
     update_low_stock_products = UpdateLowStockProducts.Field()
 
 
+class Query(graphene.ObjectType):
+    hello = graphene.String(default_value="Hello World")
+    total_customers = graphene.Int()
+    total_orders = graphene.Int()
+    total_revenue = graphene.Float()
+
+    def resolve_total_customers(root, info):
+        from crm.models import Customer
+        return Customer.objects.count()
+
+    def resolve_total_orders(root, info):
+        from crm.models import Order
+        return Order.objects.count()
+
+    def resolve_total_revenue(root, info):
+        from crm.models import Order
+        return sum(order.totalamount for order in Order.objects.all())
+
+
+
 schema = graphene.Schema(query=Query, mutation=Mutation)
