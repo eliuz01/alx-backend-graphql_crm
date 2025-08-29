@@ -5,9 +5,6 @@ from .models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 
 
-# ==============================
-# GraphQL Types with Filters
-# ==============================
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
@@ -104,15 +101,35 @@ class CreateOrder(graphene.Mutation):
 
 
 # ==============================
+# New Mutation: Update Low Stock
+# ==============================
+class UpdateLowStockProducts(graphene.Mutation):
+    class Arguments:
+        increment = graphene.Int(required=False, default_value=10)
+
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    def mutate(self, info, increment):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated = []
+        for product in low_stock_products:
+            product.stock += increment
+            product.save()
+            updated.append(product)
+
+        message = f"Updated {len(updated)} products with stock < 10"
+        return UpdateLowStockProducts(updated_products=updated, message=message)
+
+
+# ==============================
 # Root Mutation
 # ==============================
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
 
 
-# ==============================
-# Schema
-# ==============================
 schema = graphene.Schema(query=Query, mutation=Mutation)
