@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+import requests
 from celery import shared_task
 from gql.transport.requests import RequestsHTTPTransport
 from gql import gql, Client
