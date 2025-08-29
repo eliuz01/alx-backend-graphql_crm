@@ -1,8 +1,9 @@
 import graphene
 from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
-from .models import Customer, Product, Order
+from crm.models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
+
 
 
 class CustomerType(DjangoObjectType):
